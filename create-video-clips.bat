@@ -7,7 +7,7 @@ set "OUTPUT_DIR=output"
 set "CLIP_START=60"
 set "CLIP_DURATION=30"
 set /a "FADE_OUT=CLIP_DURATION-1"
-set "SUBTITLE=CHECK THIS OUT"
+set "SUBTITLE=MOST PLAYED THIS WEEK"
 
 set "INPUT_DIR=%cd%"
 
@@ -35,8 +35,16 @@ echo Usage: %0 [-i input_dir] [-o output_dir] [-s subtitle]
 goto end
 
 :main
+set "FFMPEG_INPUTS=-stream_loop -1 -t %CLIP_DURATION% -i "%BG_VIDEO%" -ss %CLIP_START% -t %CLIP_DURATION% -i "%%i" -i "%LOGO_IMAGE%""
+set "FFMPEG_OUTPUTS=-map "[vout]" -map "[audio]" -c:v libx264 -preset medium -crf 18 -c:a aac -strict -2 -shortest"
+set "AFADE_FILTER=[1:a]afade=t=in:st=0:d=3,afade=t=out:st=!FADE_OUT!:d=1[audio]"
+
 for %%i in ("%INPUT_DIR%\*.mp3") do (
-  ffmpeg -stream_loop -1 -t %CLIP_DURATION% -i "%BG_VIDEO%" -ss %CLIP_START% -t %CLIP_DURATION% -i "%%i" -i "%LOGO_IMAGE%" -filter_complex "[0:v]scale=1920x1080,setpts=PTS-STARTPTS[bkg];[1:a]afade=t=in:st=0:d=3,afade=t=out:st=!FADE_OUT!:d=1[audio];[2:v]scale=400:-1,setsar=1[logo];[bkg][logo]overlay=(main_w-overlay_w)/2:(main_h-overlay_h)/2[bg1];[bg1]drawtext=fontfile=!FONT!:text='%%~ni':fontcolor=white:fontsize=72:x=(w-text_w)/2:y=h-80,drawtext=fontfile=!FONT!:text='%SUBTITLE%':fontcolor=white:fontsize=120:x=(w-text_w)/2:y=30[v]" -map "[v]" -map "[audio]" -c:v libx264 -preset medium -crf 18 -c:a aac -strict -2 -shortest "%OUTPUT_DIR%\%%~ni.mp4"
+	ffmpeg %FFMPEG_INPUTS% -filter_complex "[0:v]scale=1920x1080,setpts=PTS-STARTPTS[bkg];%AFADE_FILTER%;[2:v]scale=400:-1,setsar=1[logo];[bkg][logo]overlay=(main_w-overlay_w)/2:(main_h-overlay_h)/2[bg1];[1:a]showwaves=s=1920x200:mode=p2p:colors=white[audioviz];[bg1][audioviz]overlay=0:main_h-overlay_h[v];[v]drawtext=fontfile=!FONT!:text='%%~ni':fontcolor=white:fontsize=72:x=(w-text_w)/2:y=h-80,drawtext=fontfile=!FONT!:text='%SUBTITLE%':fontcolor=white:fontsize=120:x=(w-text_w)/2:y=30[vout]" %FFMPEG_OUTPUTS% "%OUTPUT_DIR%\%%~ni_1920x1080.mp4"
+
+	ffmpeg %FFMPEG_INPUTS% -filter_complex "[0:v]scale=-1:1920,crop=1080:1920:(iw-1080)/2:0,setpts=PTS-STARTPTS[bkg];%AFADE_FILTER%;[2:v]scale=400:-1,setsar=1[logo];[bkg][logo]overlay=(main_w-overlay_w)/2:(main_h-overlay_h)/2[bg1];[1:a]showwaves=s=1080x400:mode=p2p:colors=white[audioviz];[bg1][audioviz]overlay=0:main_h-overlay_h[v];[v]drawtext=fontfile=!FONT!:text='%SUBTITLE%':fontcolor=white:fontsize=120:x=(w-text_w)/2:y=55,drawtext=fontfile=!FONT!:text='%%~ni':fontcolor=white:fontsize=72:x=(w-text_w)/2:y=15+text_h+130[vout]" %FFMPEG_OUTPUTS% "%OUTPUT_DIR%\%%~ni_1080x1920.mp4"
+
+
 )
 
 :end
