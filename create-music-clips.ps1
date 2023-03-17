@@ -2,11 +2,27 @@ param (
     [string]$subtitle = "MOST PLAYED THIS WEEK",
     [string]$input_dir = (Get-Location).Path,
     [string]$output_dir = "output",
-	  [string]$bg_video_dir = "background_videos",
-	  [string]$font = "BebasNeue-Regular.ttf",
-	  [string]$logo_image = "logo.png",
+	[string]$bg_video_dir = "background_videos",
+	[string]$font = "BebasNeue-Regular.ttf",
+	[string]$logo_image = "logo.png",
     [string]$genre = ""	
 )
+
+function Show-Usage {
+    $scriptName = Split-Path -Path $MyInvocation.ScriptName -Leaf
+    Write-Host "Invalid usage:"
+    Write-Host "  .\$scriptName [-subtitle <subtitle_text>] [-input_dir <input_directory>] [-output_dir <output_directory>] [-bg_video_dir <background_video_directory>] [-font <font_file>] [-logo_image <logo_image_file>] [-genre <genre_prefix>]"
+    exit
+}
+
+$validParameters = @("subtitle", "input_dir", "output_dir", "bg_video_dir", "font", "logo_image", "genre")
+
+for ($i = 0; $i -lt $args.Count; $i += 2) {
+    $parameterName = $args[$i].TrimStart('-')
+    if ($parameterName -notin $validParameters) {
+        Show-Usage
+    }
+}
 
 $ErrorActionPreference = "Stop"
 
