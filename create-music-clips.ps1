@@ -55,7 +55,14 @@ Get-ChildItem -Path $bg_video_dir -Filter $bg_video_filter | ForEach-Object {
 
 $count--
 
-Get-ChildItem -Path $input_dir -Filter "*.mp3" | ForEach-Object {
+if ($input_dir -like "*.mp3") {
+    $filter = Split-Path $input_dir -Leaf
+    $input_dir = Split-Path $input_dir -Parent
+} else {
+    $filter = "*.mp3"
+}
+
+Get-ChildItem -Path $input_dir -Filter $filter | ForEach-Object {
     $randomIndex = (Get-Random -Maximum ($count + 1))
     $bg_video = $files[$randomIndex]
     Write-Host "Using $bg_video"
