@@ -12,7 +12,7 @@
 - Used by SafeBeatz to quickly generate full length music videos for YouTube
 - Loop through a folder of MP3s
 - Generate a 1920x1080 MP4 for each song
-- Uses a loopable backgron - can be filtered by -genre
+- Uses a loopable background - can be filtered by -genre
 - Adds the song title to the video
 - Adds an image centrally (i.e. logo or album cover)
 - Adds an audio visualization waveform
