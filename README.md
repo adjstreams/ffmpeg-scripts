@@ -3,9 +3,13 @@
 ## concatenate.ps1
 
 - take a bunch of MP4s and join them together with a duration of x seconds per clip
-- USAGE: .\concatenate.ps1 [-duration x] -folderPath /path/to/mp4s
+- Can specify a max duration for the output clip, e.g. 60 seconds
+- If the total number of clips x duration is more than max duration, it will split into multiple output files
+- USAGE: .\concatenate.ps1 [-duration 5] [-maxDuration 60] [-outputFileName output.mp4] -folderPath /path/to/mp4s
 - -folderPath also supports patterns like /path/to/mp4s/*_1920x1080.mp4
 - -duration defaults to 5 seconds if not specified
+- maxDuration defaults to 60 seconds if not specified
+- output file name defaults to output.mp4 if not specified
 
 ## create-music-videos.ps1
 
