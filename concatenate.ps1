@@ -1,6 +1,8 @@
 param (
     [string]$FolderPath,
-    [int]$duration=5
+    [int]$duration = 5,
+    [int]$maxDuration = 60,
+    [string]$outputFileName = "output.mp4"
 )
 
 # Check if the specified path is a directory or a file path
@@ -17,10 +19,21 @@ $filesList = foreach ($file in $files) {
     "'{0}'" -f $file.FullName
 }
 
-# Use ffmpeg to concatenate the mp4 files, including only the first few seconds of each clip
-$cmd = "ffmpeg.exe"
-for ($i = 0; $i -lt $files.Count; $i++) {
-    $cmd += " -ss 0 -to $duration -r 30 -i $($filesList[$i])"
+$partsCount = [math]::Ceiling(($files.Count * $duration) / $maxDuration)
+$filesPerPart = [math]::Ceiling($files.Count / $partsCount)
+
+for ($p = 0; $p -lt $partsCount; $p++) {
+    $cmd = "ffmpeg.exe"
+    for ($i = $p * $filesPerPart; $i -lt [math]::Min(($p + 1) * $filesPerPart, $files.Count); $i++) {
+        $cmd += " -ss 0 -to $duration -r 30 -i $($filesList[$i])"
+    }
+
+    $partSuffix = ""
+    if ($partsCount -gt 1) {
+        $partSuffix = "_part$($p + 1)"
+    }
+    $outputFileWithSuffix = [System.IO.Path]::ChangeExtension($outputFileName, "$partSuffix$([System.IO.Path]::GetExtension($outputFileName))")
+
+    $cmd += " -filter_complex 'concat=n=$([math]::Min($filesPerPart, $files.Count - $p * $filesPerPart)):v=1:a=1[out]' -map '[out]' -r 30 -y $outputFileWithSuffix"
+    Invoke-Expression $cmd
 }
-$cmd += " -filter_complex 'concat=n=$($files.Count):v=1:a=1[out]' -map '[out]' -r 30 -y output.mp4"
-Invoke-Expression $cmd
